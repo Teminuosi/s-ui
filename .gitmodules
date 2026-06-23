@@ -1,4 +1,4 @@
 [submodule "frontend"]
 	path = frontend
-	url = https://github.com/alireza0/s-ui-frontend
+	url = https://github.com/Teminuosi/s-ui-frontend
 	branch = main

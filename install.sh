@@ -7,6 +7,36 @@ plain='\033[0m'
 
 cur_dir=$(pwd)
 
+# Full-auto install mode. Enabled by SUI_AUTO=1 (or y). In auto mode every
+# interactive prompt takes a sensible default: keep existing settings on an
+# upgrade; on a fresh install generate random admin credentials and a random
+# panel path, then print the access info. Example:
+#   SUI_AUTO=1 bash <(curl -Ls https://raw.githubusercontent.com/Teminuosi/s-ui/main/install.sh)
+SUI_AUTO="${SUI_AUTO:-}"
+
+is_auto() {
+    [[ "$SUI_AUTO" == "1" || "$SUI_AUTO" == "y" || "$SUI_AUTO" == "Y" ]]
+}
+
+# auto_read VAR DEFAULT PROMPT
+# In auto mode: assign DEFAULT to VAR (caller scope) and echo the choice.
+# Otherwise behave like the plain `read -rp PROMPT VAR` it replaces.
+auto_read() {
+    local __av="$1" __ad="$2" __ap="$3"
+    if is_auto; then
+        printf -v "$__av" '%s' "$__ad"
+        echo -e "${yellow}[auto]${plain} ${__ap}${__ad}"
+    else
+        read -rp "$__ap" "$__av"
+    fi
+}
+
+# Alphanumeric random string (URL-safe, no base64 specials).
+gen_random_string() {
+    local length="$1"
+    LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head -c "$length"
+}
+
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}Fatal error: ${plain} Please run this script with root privilege \n " && exit 1
 
@@ -61,7 +91,29 @@ install_base() {
 config_after_install() {
     echo -e "${yellow}Migration... ${plain}"
     /usr/local/s-ui/sui migrate
-    
+
+    # Full-auto mode: no prompts. Fresh install -> random credentials + random
+    # panel path; upgrade -> keep existing settings untouched.
+    if is_auto; then
+        if [[ ! -f "/usr/local/s-ui/db/s-ui.db" ]]; then
+            local config_account=$(gen_random_string 10)
+            local config_password=$(gen_random_string 12)
+            local config_path=$(gen_random_string 15)
+            echo -e "${yellow}[auto] Fresh install: generating random credentials and panel path...${plain}"
+            /usr/local/s-ui/sui setting -path "/${config_path}/"
+            /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
+            echo -e "###############################################"
+            echo -e "${green}username:${config_account}${plain}"
+            echo -e "${green}password:${config_password}${plain}"
+            echo -e "${green}panel path:/${config_path}/${plain}"
+            echo -e "###############################################"
+            echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
+        else
+            echo -e "${yellow}[auto] Upgrade detected: keeping existing settings.${plain}"
+        fi
+        return
+    fi
+
     echo -e "${yellow}Install/update finished! For security it's recommended to modify panel settings ${plain}"
     read -p "Do you want to continue with the modification [y/n]? ": config_confirm
     if [[ "${config_confirm}" == "y" || "${config_confirm}" == "Y" ]]; then
@@ -135,20 +187,20 @@ install_s-ui() {
     cd /tmp/
 
     if [ $# == 0 ]; then
-        last_version=$(curl -Ls "https://api.github.com/repos/alireza0/s-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        last_version=$(curl -Ls "https://api.github.com/repos/Teminuosi/s-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if [[ ! -n "$last_version" ]]; then
             echo -e "${red}Failed to fetch s-ui version, it maybe due to Github API restrictions, please try it later${plain}"
             exit 1
         fi
         echo -e "Got s-ui latest version: ${last_version}, beginning the installation..."
-        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz
+        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz https://github.com/Teminuosi/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz
         if [[ $? -ne 0 ]]; then
             echo -e "${red}Downloading s-ui failed, please be sure that your server can access Github ${plain}"
             exit 1
         fi
     else
         last_version=$1
-        url="https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
+        url="https://github.com/Teminuosi/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
         echo -e "Beginning the install s-ui v$1"
         wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz ${url}
         if [[ $? -ne 0 ]]; then

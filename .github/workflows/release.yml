@@ -73,6 +73,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6.0.2
 
+      - name: Stamp version from release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: printf '%s' "${GITHUB_REF_NAME#v}" > config/version
+
       - name: Download frontend dist
         uses: actions/download-artifact@v8
         with:

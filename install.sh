@@ -37,6 +37,42 @@ gen_random_string() {
     LC_ALL=C tr -dc 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head -c "$length"
 }
 
+# Is a TCP port currently being listened on? (used to avoid clashing with an
+# existing panel such as 3x-ui, whose default sub port is also 2096.)
+is_port_in_use() {
+    local port="$1"
+    if command -v ss > /dev/null 2>&1; then
+        ss -ltn 2> /dev/null | awk -v p=":${port}\$" '$4 ~ p {exit 0} END {exit 1}'
+        return
+    fi
+    if command -v netstat > /dev/null 2>&1; then
+        netstat -lnt 2> /dev/null | awk -v p=":${port} " '$4 ~ p {exit 0} END {exit 1}'
+        return
+    fi
+    if command -v lsof > /dev/null 2>&1; then
+        lsof -nP -iTCP:"${port}" -sTCP:LISTEN > /dev/null 2>&1 && return 0
+    fi
+    return 1
+}
+
+# Echo a free port: prefer $1, else fall back to a random high port. Keeps the
+# nice default when it's free, only deviates when something already holds it.
+pick_port() {
+    local preferred="$1" p
+    if ! is_port_in_use "$preferred"; then
+        echo "$preferred"
+        return
+    fi
+    for _ in $(seq 1 30); do
+        p=$(shuf -i 20000-60000 -n 1)
+        if ! is_port_in_use "$p"; then
+            echo "$p"
+            return
+        fi
+    done
+    echo "$preferred"
+}
+
 # check root
 [[ $EUID -ne 0 ]] && echo -e "${red}Fatal error: ${plain} Please run this script with root privilege \n " && exit 1
 
@@ -99,13 +135,21 @@ config_after_install() {
             local config_account=$(gen_random_string 10)
             local config_password=$(gen_random_string 12)
             local config_path=$(gen_random_string 15)
-            echo -e "${yellow}[auto] Fresh install: generating random credentials and panel path...${plain}"
-            /usr/local/s-ui/sui setting -path "/${config_path}/"
+            # Pick free ports so we don't clash with an existing panel (e.g. a
+            # 3x-ui install already on 2096). Keep the defaults when they're free.
+            local config_port=$(pick_port 2095)
+            local config_subPort=$(pick_port 2096)
+            echo -e "${yellow}[auto] Fresh install: generating random credentials, panel path and free ports...${plain}"
+            [[ "$config_port" != "2095" ]] && echo -e "${yellow}[auto] Port 2095 busy, using ${config_port} for the panel.${plain}"
+            [[ "$config_subPort" != "2096" ]] && echo -e "${yellow}[auto] Port 2096 busy, using ${config_subPort} for subscriptions.${plain}"
+            /usr/local/s-ui/sui setting -port "${config_port}" -path "/${config_path}/" -subPort "${config_subPort}"
             /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
             echo -e "###############################################"
             echo -e "${green}username:${config_account}${plain}"
             echo -e "${green}password:${config_password}${plain}"
+            echo -e "${green}panel port:${config_port}${plain}"
             echo -e "${green}panel path:/${config_path}/${plain}"
+            echo -e "${green}sub port:${config_subPort}${plain}"
             echo -e "###############################################"
             echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
         else
@@ -232,7 +276,7 @@ install_s-ui() {
 
     systemctl enable s-ui --now
 
-    echo -e "${green}s-ui v${last_version}${plain} installation finished, it is up and running now..."
+    echo -e "${green}s-ui ${last_version}${plain} installation finished, it is up and running now..."
     echo -e "You may access the Panel with following URL(s):${green}"
     /usr/local/s-ui/sui uri
     echo -e "${plain}"

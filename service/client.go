@@ -294,6 +294,15 @@ func (s *ClientService) UpdateClientsOnInboundDelete(tx *gorm.DB, id uint, tag s
 				newClientInbounds = append(newClientInbounds, clientInbound)
 			}
 		}
+		// Orphan cleanup: a client that no longer belongs to any inbound is
+		// removed together with the inbound it was created for.
+		if len(newClientInbounds) == 0 {
+			err = tx.Where("id = ?", client.Id).Delete(model.Client{}).Error
+			if err != nil {
+				return err
+			}
+			continue
+		}
 		client.Inbounds, err = json.MarshalIndent(newClientInbounds, "", "  ")
 		if err != nil {
 			return err

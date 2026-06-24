@@ -187,7 +187,12 @@ install_s-ui() {
     cd /tmp/
 
     if [ $# == 0 ]; then
-        last_version=$(curl -Ls "https://api.github.com/repos/Teminuosi/s-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        last_version=$(curl -Ls "https://api.github.com/repos/Teminuosi/s-ui/releases/latest" | grep '"tag_name":' | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+        # Fall back to the most recent release (covers prerelease-only repos:
+        # /releases/latest skips prereleases, /releases lists everything).
+        if [[ -z "$last_version" ]]; then
+            last_version=$(curl -Ls "https://api.github.com/repos/Teminuosi/s-ui/releases" | grep '"tag_name":' | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+        fi
         if [[ ! -n "$last_version" ]]; then
             echo -e "${red}Failed to fetch s-ui version, it maybe due to Github API restrictions, please try it later${plain}"
             exit 1

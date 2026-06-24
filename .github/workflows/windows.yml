@@ -1,5 +1,8 @@
 name: Build S-UI for Windows
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   release:

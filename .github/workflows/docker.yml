@@ -1,6 +1,10 @@
 name: Docker Image CI
 # Manual-only on this fork: GHCR is published with the built-in GITHUB_TOKEN.
 # (Docker Hub publishing was removed — it needed secrets this fork doesn't set.)
+permissions:
+  contents: read
+  packages: write
+
 on:
   workflow_dispatch:
 

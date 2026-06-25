@@ -159,3 +159,18 @@ func (s *UserService) DeleteToken(id string) error {
 	db := database.GetDB()
 	return db.Model(model.Tokens{}).Where("id = ?", id).Delete(&model.Tokens{}).Error
 }
+
+// GetOrCreateToken returns an existing non-expired token if there is one, else
+// creates a new one. Used so install/upgrade can print a stable token without
+// piling up new ones on every run.
+func (s *UserService) GetOrCreateToken(username string, desc string) (string, error) {
+	db := database.GetDB()
+	var existing model.Tokens
+	err := db.Model(model.Tokens{}).
+		Where("(expiry == 0 or expiry > ?)", time.Now().Unix()).
+		First(&existing).Error
+	if err == nil && existing.Token != "" {
+		return existing.Token, nil
+	}
+	return s.AddToken(username, 0, desc)
+}

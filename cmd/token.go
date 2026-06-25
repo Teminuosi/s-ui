@@ -9,9 +9,10 @@ import (
 	"github.com/alireza0/s-ui/service"
 )
 
-// genToken creates an APIv2 token for the first admin and prints ONLY the
-// token to stdout (errors go to stderr), so install scripts can capture it.
-func genToken(desc string) {
+// genToken prints an APIv2 token for the first admin to stdout (errors go to
+// stderr, so install scripts can capture the token). By default it reuses an
+// existing token if there is one; forceNew always creates a fresh one.
+func genToken(desc string, forceNew bool) {
 	if err := database.InitDB(config.GetDBPath()); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -25,7 +26,12 @@ func genToken(desc string) {
 	if desc == "" {
 		desc = "cli"
 	}
-	token, err := userService.AddToken(user.Username, 0, desc)
+	var token string
+	if forceNew {
+		token, err = userService.AddToken(user.Username, 0, desc)
+	} else {
+		token, err = userService.GetOrCreateToken(user.Username, desc)
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "generate token failed:", err)
 		return

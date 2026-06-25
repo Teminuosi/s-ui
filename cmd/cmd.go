@@ -19,7 +19,9 @@ func ParseCmd() {
 	tokenCmd := flag.NewFlagSet("token", flag.ExitOnError)
 
 	var tokenDesc string
+	var tokenNew bool
 	tokenCmd.StringVar(&tokenDesc, "desc", "", "token description")
+	tokenCmd.BoolVar(&tokenNew, "new", false, "force a new token instead of reusing an existing one")
 
 	var username string
 	var password string
@@ -95,7 +97,7 @@ func ParseCmd() {
 			fmt.Println(err)
 			return
 		}
-		genToken(tokenDesc)
+		genToken(tokenDesc, tokenNew)
 
 	case "uri":
 		getPanelURI()

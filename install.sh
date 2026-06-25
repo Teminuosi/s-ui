@@ -158,6 +158,12 @@ config_after_install() {
             echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
         else
             echo -e "${yellow}[auto] Upgrade detected: keeping existing settings.${plain}"
+            local up_token=$(/usr/local/s-ui/sui token -desc upgrade 2>/dev/null)
+            echo -e "###############################################"
+            /usr/local/s-ui/sui admin -show 2>/dev/null
+            [[ -n "$up_token" ]] && echo -e "${green}API token:${up_token}${plain}"
+            echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
+            echo -e "###############################################"
         fi
         return
     fi

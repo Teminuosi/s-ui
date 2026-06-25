@@ -144,12 +144,16 @@ config_after_install() {
             [[ "$config_subPort" != "2096" ]] && echo -e "${yellow}[auto] Port 2096 busy, using ${config_subPort} for subscriptions.${plain}"
             /usr/local/s-ui/sui setting -port "${config_port}" -path "/${config_path}/" -subPort "${config_subPort}"
             /usr/local/s-ui/sui admin -username "${config_account}" -password "${config_password}"
+            # Generate an APIv2 token so this server can be managed from another
+            # panel out of the box (central management).
+            local config_token=$(/usr/local/s-ui/sui token -desc install 2>/dev/null)
             echo -e "###############################################"
             echo -e "${green}username:${config_account}${plain}"
             echo -e "${green}password:${config_password}${plain}"
             echo -e "${green}panel port:${config_port}${plain}"
             echo -e "${green}panel path:/${config_path}/${plain}"
             echo -e "${green}sub port:${config_subPort}${plain}"
+            [[ -n "$config_token" ]] && echo -e "${green}API token:${config_token}${plain}"
             echo -e "###############################################"
             echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
         else

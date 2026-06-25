@@ -16,6 +16,10 @@ func ParseCmd() {
 
 	adminCmd := flag.NewFlagSet("admin", flag.ExitOnError)
 	settingCmd := flag.NewFlagSet("setting", flag.ExitOnError)
+	tokenCmd := flag.NewFlagSet("token", flag.ExitOnError)
+
+	var tokenDesc string
+	tokenCmd.StringVar(&tokenDesc, "desc", "", "token description")
 
 	var username string
 	var password string
@@ -43,6 +47,7 @@ func ParseCmd() {
 		fmt.Println()
 		fmt.Println("Commands:")
 		fmt.Println("    admin          set/reset/show first admin credentials")
+		fmt.Println("    token          generate an APIv2 token (for central management)")
 		fmt.Println("    uri            Show panel URI")
 		fmt.Println("    migrate        migrate form older version")
 		fmt.Println("    setting        set/reset/show settings")
@@ -83,6 +88,14 @@ func ParseCmd() {
 			updateAdmin(username, password)
 			showAdmin()
 		}
+
+	case "token":
+		err := tokenCmd.Parse(os.Args[2:])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		genToken(tokenDesc)
 
 	case "uri":
 		getPanelURI()

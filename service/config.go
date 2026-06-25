@@ -30,6 +30,7 @@ type ConfigService struct {
 	OutboundService
 	ServicesService
 	EndpointService
+	ServerListService
 }
 
 type SingBoxConfig struct {
@@ -236,6 +237,9 @@ func (s *ConfigService) Save(obj string, act string, data json.RawMessage, initU
 		go func() { _ = s.restartCoreWithConfig(configData) }()
 	case "settings":
 		err = s.SettingService.Save(tx, data)
+	case "servers":
+		// Saved panel addresses (launcher); no core involvement.
+		err = s.ServerListService.Save(tx, act, data)
 	default:
 		return nil, common.NewError("unknown object: ", obj)
 	}

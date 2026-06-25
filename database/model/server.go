@@ -8,5 +8,7 @@ type Server struct {
 	Url      string `json:"url" form:"url"`
 	Username string `json:"username" form:"username"`
 	Password string `json:"password" form:"password"`
-	Remark   string `json:"remark" form:"remark"`
+	// Token is the remote s-ui APIv2 token used for central management.
+	Token  string `json:"token" form:"token"`
+	Remark string `json:"remark" form:"remark"`
 }

@@ -27,6 +27,8 @@ func (a *APIHandler) initRouter(g *gin.RouterGroup) {
 			checkLogin(c)
 		}
 	})
+	// Forward to a remote server's APIv2 when X-Remote-Server is set.
+	g.Use(a.ApiService.remoteMiddleware)
 	g.POST("/:postAction", a.postHandler)
 	g.GET("/:getAction", a.getHandler)
 }

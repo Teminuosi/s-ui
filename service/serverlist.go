@@ -24,6 +24,16 @@ func (s *ServerListService) GetAll() ([]model.Server, error) {
 	return servers, nil
 }
 
+func (s *ServerListService) GetById(id string) (*model.Server, error) {
+	db := database.GetDB()
+	var server model.Server
+	err := db.Model(model.Server{}).Where("id = ?", id).First(&server).Error
+	if err != nil {
+		return nil, err
+	}
+	return &server, nil
+}
+
 func (s *ServerListService) Save(tx *gorm.DB, act string, data json.RawMessage) error {
 	switch act {
 	case "new", "edit":

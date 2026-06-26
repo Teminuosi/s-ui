@@ -222,6 +222,30 @@ config_after_install() {
     fi
 }
 
+# Best-effort: open the panel/sub ports and the node port range in the host
+# firewall so nodes are reachable out of the box. Full-auto only.
+open_firewall() {
+    is_auto || return 0
+    local panel_port sub_port
+    panel_port=$(/usr/local/s-ui/sui setting -show 2>/dev/null | grep -i "Panel port:" | grep -oE '[0-9]+' | head -1)
+    sub_port=$(/usr/local/s-ui/sui setting -show 2>/dev/null | grep -i "Sub port:" | grep -oE '[0-9]+' | head -1)
+    if command -v ufw > /dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: active"; then
+        [[ -n "$panel_port" ]] && ufw allow "${panel_port}/tcp" > /dev/null 2>&1
+        [[ -n "$sub_port" ]] && ufw allow "${sub_port}/tcp" > /dev/null 2>&1
+        ufw allow 10000:60000/tcp > /dev/null 2>&1
+        ufw allow 10000:60000/udp > /dev/null 2>&1
+        ufw reload > /dev/null 2>&1
+        echo -e "${green}[auto] Firewall (ufw) opened: ${panel_port}, ${sub_port}, 10000-60000 tcp/udp.${plain}"
+    elif command -v firewall-cmd > /dev/null 2>&1 && firewall-cmd --state > /dev/null 2>&1; then
+        [[ -n "$panel_port" ]] && firewall-cmd --permanent --add-port="${panel_port}/tcp" > /dev/null 2>&1
+        [[ -n "$sub_port" ]] && firewall-cmd --permanent --add-port="${sub_port}/tcp" > /dev/null 2>&1
+        firewall-cmd --permanent --add-port=10000-60000/tcp > /dev/null 2>&1
+        firewall-cmd --permanent --add-port=10000-60000/udp > /dev/null 2>&1
+        firewall-cmd --reload > /dev/null 2>&1
+        echo -e "${green}[auto] Firewall (firewalld) opened: ${panel_port}, ${sub_port}, 10000-60000 tcp/udp.${plain}"
+    fi
+}
+
 prepare_services() {
     if [[ -f "/etc/systemd/system/sing-box.service" ]]; then
         echo -e "${yellow}Stopping sing-box service... ${plain}"
@@ -282,6 +306,7 @@ install_s-ui() {
     rm -rf s-ui
 
     config_after_install
+    open_firewall
     prepare_services
 
     systemctl enable s-ui --now

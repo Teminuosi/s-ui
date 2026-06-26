@@ -103,6 +103,8 @@ func (a *APIHandler) getHandler(c *gin.Context) {
 		a.ApiService.GetSingboxConfig(c)
 	case "checkOutbound":
 		a.ApiService.GetCheckOutbound(c)
+	case "testServer":
+		a.ApiService.TestServer(c)
 	default:
 		jsonMsg(c, "failed", common.NewError("unknown action: ", action))
 	}

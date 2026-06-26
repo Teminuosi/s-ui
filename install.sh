@@ -153,7 +153,10 @@ config_after_install() {
             echo -e "${green}panel port:${config_port}${plain}"
             echo -e "${green}panel path:/${config_path}/${plain}"
             echo -e "${green}sub port:${config_subPort}${plain}"
-            [[ -n "$config_token" ]] && echo -e "${green}API token:${config_token}${plain}"
+            if [[ -n "$config_token" ]]; then
+                echo -e "${green}API token (copy the line below):${plain}"
+                echo -e "${config_token}"
+            fi
             echo -e "###############################################"
             echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
         else
@@ -161,7 +164,10 @@ config_after_install() {
             local up_token=$(/usr/local/s-ui/sui token -desc upgrade 2>/dev/null)
             echo -e "###############################################"
             /usr/local/s-ui/sui admin -show 2>/dev/null
-            [[ -n "$up_token" ]] && echo -e "${green}API token:${up_token}${plain}"
+            if [[ -n "$up_token" ]]; then
+                echo -e "${green}API token (copy the line below):${plain}"
+                echo -e "${up_token}"
+            fi
             echo -e "${red}If you forget your login info, type ${green}s-ui${red} on the server for the menu.${plain}"
             echo -e "###############################################"
         fi

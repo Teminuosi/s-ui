@@ -116,14 +116,20 @@ uninstall() {
     fi
     systemctl stop s-ui
     systemctl disable s-ui
-    rm /etc/systemd/system/s-ui.service -f
+    # Kill anything still running from a deleted binary so the port frees up.
+    pkill -9 -f '/usr/local/s-ui' 2>/dev/null
+    rm -f /etc/systemd/system/s-ui.service
+    rm -f /etc/systemd/system/multi-user.target.wants/s-ui.service
     systemctl daemon-reload
     systemctl reset-failed
-    rm /etc/s-ui/ -rf
-    rm /usr/local/s-ui/ -rf
+    rm -rf /etc/s-ui/
+    rm -rf /usr/local/s-ui/
+    # The menu script itself is /usr/bin/s-ui; remove it too so `s-ui` is gone
+    # after uninstall (the running copy lives in memory, so this is safe).
+    rm -f /usr/bin/s-ui
 
     echo ""
-    echo -e "Uninstalled Successfully, If you want to remove this script, then after exiting the script run ${green}rm /usr/local/s-ui -f${plain} to delete it."
+    echo -e "${green}Uninstalled cleanly: binary, database, service unit and the s-ui menu script are all removed.${plain}"
     echo ""
 
     if [[ $# == 0 ]]; then

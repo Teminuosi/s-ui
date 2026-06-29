@@ -215,13 +215,20 @@ config_after_install() {
         if [[ ! -f "/usr/local/s-ui/db/s-ui.db" ]]; then
             local usernameTemp=$(head -c 6 /dev/urandom | base64)
             local passwordTemp=$(head -c 6 /dev/urandom | base64)
+            /usr/local/s-ui/sui admin -username ${usernameTemp} -password ${passwordTemp}
+            # Mint an APIv2 token even on a plain (non-auto) fresh install, so this
+            # panel can be managed centrally out of the box. (qs31)
+            local config_token=$(/usr/local/s-ui/sui token -desc install 2>/dev/null)
             echo -e "this is a fresh installation,will generate random login info for security concerns:"
             echo -e "###############################################"
             echo -e "${green}username:${usernameTemp}${plain}"
             echo -e "${green}password:${passwordTemp}${plain}"
+            if [[ -n "$config_token" ]]; then
+                echo -e "${green}API token (copy the line below):${plain}"
+                echo -e "${config_token}"
+            fi
             echo -e "###############################################"
             echo -e "${red}if you forgot your login info,you can type ${green}s-ui${red} for configuration menu${plain}"
-            /usr/local/s-ui/sui admin -username ${usernameTemp} -password ${passwordTemp}
         else
             echo -e "${red} this is your upgrade,will keep old settings,if you forgot your login info,you can type ${green}s-ui${red} for configuration menu${plain}"
         fi

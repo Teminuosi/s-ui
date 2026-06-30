@@ -7,15 +7,17 @@ plain='\033[0m'
 
 cur_dir=$(pwd)
 
-# Full-auto install mode. Enabled by SUI_AUTO=1 (or y). In auto mode every
-# interactive prompt takes a sensible default: keep existing settings on an
-# upgrade; on a fresh install generate random admin credentials and a random
-# panel path, then print the access info. Example:
-#   SUI_AUTO=1 bash <(curl -Ls https://raw.githubusercontent.com/Teminuosi/s-ui/main/install.sh)
-SUI_AUTO="${SUI_AUTO:-}"
+# Full-auto is the DEFAULT install mode: every command runs start-to-finish with
+# no prompts. On a fresh install it generates random admin credentials + a random
+# panel path + free ports + an API token and opens the firewall, then prints the
+# access info; on an upgrade it keeps existing settings untouched. To get the old
+# interactive flow back, set SUI_AUTO=0 (or n). Examples:
+#   bash <(curl -Ls https://raw.githubusercontent.com/Teminuosi/s-ui/main/install.sh)            # auto (default)
+#   SUI_AUTO=0 bash <(curl -Ls https://raw.githubusercontent.com/Teminuosi/s-ui/main/install.sh) # interactive
+SUI_AUTO="${SUI_AUTO:-1}"
 
 is_auto() {
-    [[ "$SUI_AUTO" == "1" || "$SUI_AUTO" == "y" || "$SUI_AUTO" == "Y" ]]
+    [[ "$SUI_AUTO" != "0" && "$SUI_AUTO" != "n" && "$SUI_AUTO" != "N" ]]
 }
 
 # auto_read VAR DEFAULT PROMPT

@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -75,11 +76,33 @@ func (s *PanelService) GetUpdateInfo() (*PanelUpdateInfo, error) {
 // 关键是让更新进程活过面板自己 —— 脚本装完会重启 s-ui,如果更新进程是面板的
 // 子进程,它会跟着一起死,留下装了一半的状态。优先用 systemd-run 起一个独立
 // 单元;拿不到 systemd 就退回 setsid 脱离进程组。
+// 已经在更新就别再起第二个:点了「更新」按钮还能再点(或开着两个页面各点一次),
+// 两份 install.sh 同时跑会互相覆盖二进制、抢着重启服务。
+// 更新成功后面板会以新进程重启,这个记录自然清零;10 分钟内没重启说明更新卡住了,放行重试。
+var (
+	updateMu      sync.Mutex
+	updateStarted time.Time
+)
+
+const updateGuard = 10 * time.Minute
+
 func (s *PanelService) StartUpdate() error {
 	if runtime.GOOS != "linux" {
 		return fmt.Errorf("panel web update is supported only on Linux installations")
 	}
+	updateMu.Lock()
+	defer updateMu.Unlock()
+	if !updateStarted.IsZero() && time.Since(updateStarted) < updateGuard {
+		return fmt.Errorf("更新已经在进行中(%d 秒前开始),面板会自行重启,请等 1-2 分钟后刷新页面", int(time.Since(updateStarted).Seconds()))
+	}
+	if err := s.startUpdateJob(); err != nil {
+		return err
+	}
+	updateStarted = time.Now()
+	return nil
+}
 
+func (s *PanelService) startUpdateJob() error {
 	bash, err := exec.LookPath("bash")
 	if err != nil {
 		return fmt.Errorf("bash is required to run the panel updater: %w", err)

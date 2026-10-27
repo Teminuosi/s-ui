@@ -90,13 +90,16 @@ update() {
 }
 
 custom_version() {
-    echo "Enter the panel version (like 0.0.1):"
+    echo "Enter the panel version (like v1.4.2-qs47):"
     read panel_version
 
     if [ -z "$panel_version" ]; then
         echo "Panel version cannot be empty. Exiting."
     exit 1
     fi
+
+    # Accept both "v1.4.2-qs47" and "1.4.2-qs47"; release tags carry the leading v.
+    case "$panel_version" in v*) ;; *) panel_version="v$panel_version" ;; esac
 
     download_link="https://raw.githubusercontent.com/Teminuosi/s-ui/main/install.sh"
 

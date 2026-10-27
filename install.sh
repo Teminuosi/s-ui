@@ -386,9 +386,9 @@ install_s-ui() {
     else
         last_version=$1
         url="https://github.com/Teminuosi/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
-        echo -e "Beginning the install s-ui v$1"
+        echo -e "Beginning the install s-ui $1"
         if ! download_release /tmp/s-ui-linux-$(arch).tar.gz "${url}"; then
-            echo -e "${red}download s-ui v$1 failed (tried direct + mirrors), please check the version exists${plain}"
+            echo -e "${red}download s-ui $1 failed (tried direct + mirrors), please check the version exists${plain}"
             exit 1
         fi
     fi

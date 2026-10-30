@@ -1,5 +1,9 @@
 # S-UI(改版)
 
+> **推荐使用 TMS 客户端管理**:常用功能(一键搭建、建协议、建中转、改端口、卸载、测延迟)都在客户端里,更省事。[下载 TMS 客户端](https://3yuedaohang.com/proxy-download)
+>
+> **Recommended: manage with the TMS client** — common tasks (one-click setup, create protocols, create relays, change ports, uninstall, latency test) are all in the client. [Download TMS client](https://3yuedaohang.com/proxy-download)
+
 **基于 [SagerNet/sing-box](https://github.com/SagerNet/sing-box) 的高级 Web 面板**
 
 > 本仓库是 [alireza0/s-ui](https://github.com/alireza0/s-ui) 的二次开发分支,在保留上游全部能力的基础上,

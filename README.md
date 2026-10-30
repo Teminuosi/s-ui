@@ -1,28 +1,44 @@
-# S-UI(改版)
+<h1 align="center">S-UI(改版)</h1>
 
-> **推荐使用 TMS 客户端管理**:常用功能(一键搭建、建协议、建中转、改端口、卸载、测延迟)都在客户端里,更省事。[下载 TMS 客户端](https://3yuedaohang.com/tms-download.html?ref=sui)
->
-> **Recommended: manage with the TMS client** — common tasks (one-click setup, create protocols, create relays, change ports, uninstall, latency test) are all in the client. [Download TMS client](https://3yuedaohang.com/tms-download.html?ref=sui)
+<p align="center">
+  基于 <a href="https://github.com/SagerNet/sing-box">SagerNet/sing-box</a> 的高级 Web 面板<br><br>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img alt="License" src="https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true"></a>
+</p>
 
-**📺 TMS 客户端视频教程 / Video tutorial**(点图片去 YouTube 观看)
+<h3 align="center">推荐用 TMS 客户端管理，不用敲命令，点一下全部搭好</h3>
 
-<a href="https://www.youtube.com/watch?v=bmcHIdvaic8&t=62s"><img src="https://img.youtube.com/vi/bmcHIdvaic8/maxresdefault.jpg" alt="TMS 客户端视频教程" width="560"></a>
+<p align="center">
+  一键搭建 · 建协议 · 建中转 · 改端口 · 卸载 · 测延迟，常用功能都在客户端里<br>
+  <sub>Recommended: manage with the TMS client — one-click setup, protocols, relays, ports, uninstall and latency tests.</sub>
+</p>
 
-**基于 [SagerNet/sing-box](https://github.com/SagerNet/sing-box) 的高级 Web 面板**
+<p align="center">
+  <a href="https://3yuedaohang.com/tms-download.html?ref=sui"><img alt="下载 TMS 客户端" src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-TMS%20%E5%AE%A2%E6%88%B7%E7%AB%AF-2ea44f?style=for-the-badge&logo=windows&logoColor=white"></a>
+  &nbsp;
+  <a href="https://www.youtube.com/watch?v=bmcHIdvaic8&t=62s"><img alt="视频教程" src="https://img.shields.io/badge/%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B-YouTube-ff0000?style=for-the-badge&logo=youtube&logoColor=white"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=bmcHIdvaic8&t=62s"><img src="https://img.youtube.com/vi/bmcHIdvaic8/maxresdefault.jpg" alt="TMS 客户端视频教程" width="720"></a><br>
+  <sub>▶ 点封面观看视频教程（YouTube）</sub>
+</p>
+
+<p align="center">
+  🌐 <a href="https://3yuedaohang.com">官网 / 导航站</a>
+  &nbsp;·&nbsp;
+  📺 <a href="https://www.youtube.com/@zhanzhang3yue">YouTube 频道</a>
+  &nbsp;·&nbsp;
+  🖥️ <a href="https://3yuedaohang.com/cn2/banwagong">机器推荐</a><br>
+  <sub>免费节点、搭建教程、订阅工具，一站直达</sub>
+</p>
+
+---
 
 > 本仓库是 [alireza0/s-ui](https://github.com/alireza0/s-ui) 的二次开发分支,在保留上游全部能力的基础上,
 > 把已在 [3x-ui 改版](https://github.com/Teminuosi/3x-ui) 验证过的体验改进搬了过来:
 > 全自动一键安装、面板更新指向本仓库、协议模板、行内二维码、批量删除、中转与多节点部署(逐步推进)。
 >
 > 仅供个人学习与交流,请勿用于非法用途,请勿用于生产环境。上游版权归原作者所有。
-
-[![License](https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-
-> 🌐 **官网 / 导航站**：https://3yuedaohang.com — 免费节点、搭建教程、订阅工具，一站直达。
->
-> 📺 **YouTube 频道**：https://www.youtube.com/@zhanzhang3yue
->
-> 🖥️ **机器推荐**：https://3yuedaohang.com/cn2/banwagong
 
 ---
 

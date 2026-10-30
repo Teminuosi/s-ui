@@ -4,6 +4,10 @@
 >
 > **Recommended: manage with the TMS client** — common tasks (one-click setup, create protocols, create relays, change ports, uninstall, latency test) are all in the client. [Download TMS client](https://3yuedaohang.com/tms-download.html?ref=sui)
 
+**📺 TMS 客户端视频教程 / Video tutorial**(点图片去 YouTube 观看)
+
+<a href="https://www.youtube.com/watch?v=bmcHIdvaic8&t=62s"><img src="https://img.youtube.com/vi/bmcHIdvaic8/maxresdefault.jpg" alt="TMS 客户端视频教程" width="560"></a>
+
 **基于 [SagerNet/sing-box](https://github.com/SagerNet/sing-box) 的高级 Web 面板**
 
 > 本仓库是 [alireza0/s-ui](https://github.com/alireza0/s-ui) 的二次开发分支,在保留上游全部能力的基础上,

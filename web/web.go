@@ -84,6 +84,12 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	}
 
 	engine.Use(gzip.Gzip(gzip.DefaultCompression))
+	// 统计在处理的请求:存配置后等面板空闲再重启内核(service/corerestart.go)
+	engine.Use(func(c *gin.Context) {
+		done := service.TrackRequest()
+		defer done()
+		c.Next()
+	})
 	assetsBasePath := base_url + "assets/"
 
 	store := cookie.NewStore(secret)

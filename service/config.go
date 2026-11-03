@@ -228,13 +228,16 @@ func (s *ConfigService) Save(obj string, act string, data json.RawMessage, initU
 	case "endpoints":
 		err = s.EndpointService.Save(tx, act, data)
 	case "config":
+		err = s.validateRouteOutbounds(tx, data)
+		if err != nil {
+			return nil, err
+		}
 		err = s.SettingService.SaveConfig(tx, data)
 		if err != nil {
 			return nil, err
 		}
-		configData := make(json.RawMessage, len(data))
-		copy(configData, data)
-		go func() { _ = s.restartCoreWithConfig(configData) }()
+		// 回复发出去之后再重启内核(见 corerestart.go)
+		s.RestartCoreWhenIdle()
 	case "settings":
 		err = s.SettingService.Save(tx, data)
 	case "servers":

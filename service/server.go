@@ -47,6 +47,9 @@ func (s *ServerService) GetStatus(request string) *map[string]interface{} {
 			status["sbd"] = s.GetSingboxInfo()
 		case "db":
 			status["db"] = s.GetDatabaseInfo()
+		case "restart":
+			// 存配置后内核重启还没做完(见 corerestart.go)。客户端等它变 false 再发后面的请求
+			status["restart"] = map[string]bool{"pending": CoreRestartPending()}
 		}
 	}
 	return &status

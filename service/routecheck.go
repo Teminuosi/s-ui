@@ -32,7 +32,7 @@ func routeOutboundRefs(data []byte) []routeRef {
 	refs := []routeRef{}
 	for i, r := range cfg.Route.Rules {
 		if tag, ok := r["outbound"].(string); ok && tag != "" {
-			refs = append(refs, routeRef{where: "route rule #" + strconv.Itoa(i+1), tag: tag})
+			refs = append(refs, routeRef{where: "route rule #" + strconv.Itoa(i+1) + " (route.rules, counting from 1)", tag: tag})
 		}
 	}
 	if cfg.Route.Final != "" {
@@ -46,26 +46,42 @@ func (s *ConfigService) validateRouteOutbounds(tx *gorm.DB, data json.RawMessage
 	if len(refs) == 0 {
 		return nil
 	}
+	var outTags, epTags []string
+	if err := tx.Model(model.Outbound{}).Pluck("tag", &outTags).Error; err != nil {
+		return err
+	}
+	if err := tx.Model(model.Endpoint{}).Pluck("tag", &epTags).Error; err != nil {
+		return err
+	}
+	oldCfg, _ := s.SettingService.GetConfig()
+	return checkRouteRefs(data, outTags, epTags, []byte(oldCfg))
+}
+
+// checkRouteRefs:新配置 data 里的路由引用,出站 / endpoint 里都没有、旧配置里也没引用过的,报错。
+func checkRouteRefs(data []byte, outTags, epTags []string, oldCfg []byte) error {
+	refs := routeOutboundRefs(data)
 	exist := map[string]bool{}
-	var tags []string
-	if err := tx.Model(model.Outbound{}).Pluck("tag", &tags).Error; err != nil {
-		return err
-	}
-	for _, t := range tags {
+	for _, t := range outTags {
 		exist[t] = true
 	}
-	tags = nil
-	if err := tx.Model(model.Endpoint{}).Pluck("tag", &tags).Error; err != nil {
-		return err
-	}
-	for _, t := range tags {
+	for _, t := range epTags {
 		exist[t] = true
+	}
+	// 一个出站都没有、也没设 final 时,sing-box 自己补一个 tag 为 direct 的出站(sing-box 1.13
+	// adapter/outbound/manager.go 的 defaultOutboundFallback),指向 direct 的规则能用。
+	// block 出站 1.13 已删,不补,照样拒。
+	hasFinal := false
+	for _, r := range refs {
+		if r.where == "route final" {
+			hasFinal = true
+		}
+	}
+	if len(outTags) == 0 && !hasFinal {
+		exist["direct"] = true
 	}
 	old := map[string]bool{}
-	if oldCfg, err := s.SettingService.GetConfig(); err == nil {
-		for _, r := range routeOutboundRefs([]byte(oldCfg)) {
-			old[r.tag] = true
-		}
+	for _, r := range routeOutboundRefs(oldCfg) {
+		old[r.tag] = true
 	}
 	for _, r := range refs {
 		if !exist[r.tag] && !old[r.tag] {

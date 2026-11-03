@@ -138,7 +138,7 @@ func (s *ConfigService) restartCoreWithConfig(config json.RawMessage) error {
 	startCoreMu.Lock()
 	if startCoreInProgress {
 		startCoreMu.Unlock()
-		return nil
+		return errCoreBusy
 	}
 	startCoreInProgress = true
 	startCoreMu.Unlock()
@@ -195,6 +195,10 @@ func (s *ConfigService) Save(obj string, act string, data json.RawMessage, initU
 	defer func() {
 		if err == nil {
 			tx.Commit()
+			// 提交之后才排重启:重启读的是库里的配置,提交前排上可能读到旧的(见 corerestart.go)
+			if obj == "config" {
+				s.RestartCoreWhenIdle()
+			}
 			// Try to start core if it is not running
 			if !corePtr.IsRunning() {
 				s.StartCore()
@@ -236,8 +240,7 @@ func (s *ConfigService) Save(obj string, act string, data json.RawMessage, initU
 		if err != nil {
 			return nil, err
 		}
-		// 回复发出去之后再重启内核(见 corerestart.go)
-		s.RestartCoreWhenIdle()
+		// 内核重启在上面 defer 里提交之后再排(回复发出去之后才真正重启,见 corerestart.go)
 	case "settings":
 		err = s.SettingService.Save(tx, data)
 	case "servers":

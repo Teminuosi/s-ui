@@ -68,8 +68,9 @@ pick_port() {
         echo "$preferred"
         return
     fi
+    # 备用口只在 40001-60000 里挑:20000-40000 留给同机的 TMS 车友线路(NCC_COEXIST_V1)。
     for _ in $(seq 1 30); do
-        p=$(shuf -i 20000-60000 -n 1)
+        p=$(shuf -i 40001-60000 -n 1)
         if ! is_port_in_use "$p"; then
             echo "$p"
             return
@@ -317,11 +318,27 @@ open_firewall() {
     fi
 }
 
+# NCC_COEXIST_V1 —— 同机共存标记,TMS 客户端装 S-UI 前会 grep 这个字符串确认脚本是新版。
+# 老版本 S-UI(1.1.x 及更早)把 sing-box 装成单独的 sing-box.service,原文是
+#   WorkingDirectory=/usr/local/s-ui/bin/
+#   ExecStart=/usr/local/s-ui/bin/runSingbox.sh
+# 升级时要停掉它。但别的程序也可能有同名服务(TMS 转发程序的 sing-box.service:
+# Description=sing-box (flux hybrid),ExecStart=/etc/gost/sing-box run -c ...),
+# 只看文件名就停会把同机 TMS 的车友线路全断。所以只停 ExecStart 指向 /usr/local/s-ui/ 的。
+is_legacy_sui_singbox_unit() {
+    grep -qE '^[[:space:]]*ExecStart=[-@:+!]*/usr/local/s-ui/' "$1" 2> /dev/null
+}
+
 prepare_services() {
-    if [[ -f "/etc/systemd/system/sing-box.service" ]]; then
-        echo -e "${yellow}Stopping sing-box service... ${plain}"
-        systemctl stop sing-box
-        rm -f /usr/local/s-ui/bin/sing-box /usr/local/s-ui/bin/runSingbox.sh /usr/local/s-ui/bin/signal
+    local unit=/etc/systemd/system/sing-box.service
+    if [[ -f "$unit" ]]; then
+        if is_legacy_sui_singbox_unit "$unit"; then
+            echo -e "${yellow}Stopping legacy s-ui sing-box service... ${plain}"
+            systemctl stop sing-box
+            rm -f /usr/local/s-ui/bin/sing-box /usr/local/s-ui/bin/runSingbox.sh /usr/local/s-ui/bin/signal
+        else
+            echo -e "${yellow}Another program's sing-box.service exists (not s-ui's); leaving it untouched.${plain}"
+        fi
     fi
     if [[ -e "/usr/local/s-ui/bin" ]]; then
         echo -e "###############################################################"
